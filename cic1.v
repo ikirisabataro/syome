@@ -128,6 +128,69 @@ left.
 auto.
 Qed.
 
+Definition pasu:=∀a b:Prop,((a → b) → a) → a.
+
+Goal pasu ↔ nnpp.
+Proof.
+split.
+intro.
+red.
+intros.
+red in H.
+specialize(H (a)(~a)).
+apply H.
+intro.
+clear H.
+exfalso.
+apply H0.
+intro.
+apply H0.
+apply H1.
+auto.
+intro.
+red.
+intros a b.
+apply H.
+intro.
+apply H0.
+intro.
+apply H1.
+intro.
+apply H.
+intro.
+apply H0.
+intro.
+auto.
+Qed.
+
+Goal pasu ↔ em.
+Proof.
+split.
+intro.
+red.
+intro.
+red in H.
+specialize(H(a\/~a)(~a)).
+apply H.
+intro.
+right.
+intro.
+clear H.
+destruct H0.
+tauto.
+auto.
+intro.
+red.
+intros.
+red in H.
+specialize(H(a)).
+destruct H.
+auto.
+apply H0.
+intro.
+contradiction.
+Qed.
+
 Definition total U R:=∀x y:U,R x y∨R y x.
 
 Goal em → total imp'.
@@ -926,69 +989,6 @@ intro.
 tauto.
 Qed.
 
-Definition pasu:=∀a b:Prop,((a → b) → a) → a.
-
-Goal pasu ↔ nnpp.
-Proof.
-split.
-intro.
-red.
-intros.
-red in H.
-specialize(H (a)(~a)).
-apply H.
-intro.
-clear H.
-exfalso.
-apply H0.
-intro.
-apply H0.
-apply H1.
-auto.
-intro.
-red.
-intros a b.
-apply H.
-intro.
-apply H0.
-intro.
-apply H1.
-intro.
-apply H.
-intro.
-apply H0.
-intro.
-auto.
-Qed.
-
-Goal pasu ↔ em.
-Proof.
-split.
-intro.
-red.
-intro.
-red in H.
-specialize(H(a\/~a)(~a)).
-apply H.
-intro.
-right.
-intro.
-clear H.
-destruct H0.
-tauto.
-auto.
-intro.
-red.
-intros.
-red in H.
-specialize(H(a)).
-destruct H.
-auto.
-apply H0.
-intro.
-contradiction.
-Qed.
-
 Definition exinj A B:=∃f:A → B,inj f.
 
 Goal ref exinj.
@@ -1076,7 +1076,191 @@ exists x0.
 congruence.
 Qed.
 
+Definition eqf A B(f g:A → B):=∀x,f x = g x.
 
+Goal ∀A B,ref(@eqf A B).
+Proof.
+intros.
+red.
+intro.
+red.
+intro.
+split.
+Qed.
+
+Goal ∀A B,tran(@eqf A B).
+Proof.
+intros.
+red.
+intros.
+red.
+intro.
+red in H,H0.
+rename x into f.
+rename y into g.
+rename z into h.
+specialize(H x0).
+specialize(H0 x0).
+congruence.
+Qed.
+
+Goal ∀A B,sym(@eqf A B).
+Proof.
+intros.
+red.
+intros.
+red.
+intro.
+red in H.
+specialize(H x0).
+firstorder.
+Qed.
+
+Definition l_nuet U f(e:U):=∀x:U,f e x = x.
+
+Definition r_nuet U f(e:U):=∀x:U,f x e = x.
+
+Definition nuet U f(e:U):=l_nuet f e∧r_nuet f e.
+
+Goal ∀U f(e1 e2:U),l_nuet f e1 → r_nuet f e2 → e1 = e2.
+Proof.
+intros.
+red in H,H0.
+specialize(H e2).
+specialize(H0 e1).
+congruence.
+Qed.
+
+(*Definition cancel U f(e x y:U):=f x y = e.*)
+
+Goal ∀U f(e a1 a2 b:U),
+ aso f →
+ nuet f e → 
+ f a1 b = e → 
+ f b a2 = e → 
+ a1 = a2.
+Proof.
+intros.
+red in H,H0.
+destruct H0.
+red in H0,H3.
+specialize(H0 a2).
+rewrite<-H0.
+case H1.
+case H.
+rewrite H2.
+specialize(H3 a1).
+rewrite H3.
+split.
+Qed.
+
+Inductive set:=sup:∀A,(A → set) → set.
+
+Definition pair e1 e2:=sup 
+(λ x,match x with true=>e1|false=>e2 end).
+
+Check sup.
+
+Fixpoint Eqset e1 e2:=
+ match e1 with 
+  |sup f => 
+  match e2 with 
+   |sup g =>
+     ∀a,∃b,Eqset(f a)(g b)∧
+     ∀b,∃a,Eqset(f a)(g b)
+  end
+ end.
+ 
+Definition In e1 e2:=
+ match e2 with
+  |sup f => ∃a,Eqset e1(f a)
+ end.
+ 
+Goal ∀a b:set,In a(pair a b).
+Proof.
+induction a.
+destruct b.
+firstorder.
+red.
+exists true.
+simpl.
+intro.
+exists a.
+
+split.
+simpl.
+hnf.
+specialize(H a(s a)).
+
+inversion H.
+assert((if x then s a else s a)=s a).
+simpl.
+cbv.
+destruct x.
+split.
+split.
+rewrite H1 in H0.
+auto.
+intro.
+exists b.
+specialize(H b(s b)).
+destruct H.
+destruct x.
+auto.
+auto.
+Qed.
+assert((if x then s b else s b)=s b).
+destruct H.
+congruence. 
+split.
+eapply H.
+
+firstorder.
+split.
+destruct H.
+apply H.
+cbv in H.
+red.
+
+exists a.
+split.
+firstorder.
+red.
+
+cbv.
+
+          
+Definition empty:=
+
+
+
+Definition l_inv U f e x':=nuet f e∧∀x:U,f x' x = e.
+
+Definition r_inv U f e x':=nuet f e∧∀x:U,f x x' = e.
+
+
+
+Definition inv U f(e x':U):=l_inv f e x'∧r_inv f e x'.
+
+Goal ∀U f(e:U),aso f → uni(inv f e).
+Proof.
+intros.
+red.
+intros.
+red in H,H0,H1.
+destruct H0,H1.
+red in H0,H2,H1,H3.
+destruct H0,H2,H1,H3.
+red in H0,H2,H1,H3.
+
+
+
+Goal nuet f e -> aso f -> f x x'=e
+
+Goal 
+
+
+Definition cancel
 
 Definition id'{U}x:=x:U.
 
