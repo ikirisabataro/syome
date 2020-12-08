@@ -1,4 +1,4 @@
-Require Import Utf8 ssreflect.
+Require Import Utf8 ssreflect ssrfun.
 
 Set Implicit Arguments.
 
@@ -27,53 +27,38 @@ Definition ref U R:=∀x:U,R x x.
 
 Goal ref imp.
 Proof.
-red.
-intro.
-red.
-intro.
-auto.
+refine(λ(x:Type)(H:x),_).
+exact H.
 Qed.
-
-Definition id U x:=x:U.
 
 Goal forall U(x:U),id x = x.
 Proof.
-intros.
-cbv.
-split.
-Qed.
-
-Definition check U x:=x = x:>U.
-
-Goal check(id:ref imp).
-Proof.
-red.
-split.
+refine(λ(U:Type)(x:U),_).
+exact eq_refl.
 Qed.
 
 Definition tran U R:=∀x y z:U,R x y → R y z → R x z.
 
 Goal tran imp.
 Proof.
-red.
-intros.
-red.
-intro.
-red in X,X0.
-auto.
+refine(λ(x y z:Type)(H:imp x y)(H0:imp y z)(H1:x),_:z).
+exact(H0(H H1)).
+Qed.
+
+Goal tran imp.
+Proof.
+cbv.
+refine(λ x y z:Type,_).
+exact catcomp.
 Qed.
 
 Definition l_total A B R:=∀a:A,∃b:B,R a b.
 
 Goal ∀U(R:U → U → Prop),ref R → l_total R.
 Proof.
-intros.
-red.
-intro.
-red in X.
-specialize(X a).
-exists a.
-auto.
+refine(λ(U:Type)(R:U → U → Prop)(H:ref R)(a:U),_).
+refine(ex_intro _ a _).
+exact(H a).
 Qed.
 
 Definition r_total A B R:=∀b:B,∃a:A,R a b.
@@ -1032,8 +1017,10 @@ cbv.
 split.
 Qed.
 
-Goal check(comp:tran imp).
-Proof.
+Goal ∀A B C D(f:A → B)(g:B → C)(h:C → D),
+ f\;g\;h = (f\;g)\;h.
+intros.
+cbv.
 split.
 Qed.
 
@@ -1156,19 +1143,14 @@ Qed.
 
 Inductive set:=sup:∀A,(A → set) → set.
 
-Definition pair e1 e2:=sup 
-(λ x,match x with true=>e1|false=>e2 end).
-
-Check sup.
+Definition pair e1 e2:=
+ sup(λ x,if x then e1 else e2).
 
 Fixpoint Eqset e1 e2:=
- match e1 with 
-  |sup f => 
-  match e2 with 
-   |sup g =>
-     ∀a,∃b,Eqset(f a)(g b)∧
-     ∀b,∃a,Eqset(f a)(g b)
-  end
+ match e1,e2 with 
+  |sup f,sup g =>
+    ∀a,∃b,Eqset(f a)(g b)∧
+    ∀b,∃a,Eqset(f a)(g b)
  end.
  
 Definition In e1 e2:=
@@ -1180,26 +1162,16 @@ Goal ∀a b:set,In a(pair a b).
 Proof.
 induction a.
 destruct b.
-firstorder.
 red.
 exists true.
 simpl.
 intro.
 exists a.
-
 split.
-simpl.
-hnf.
 specialize(H a(s a)).
-
-inversion H.
-assert((if x then s a else s a)=s a).
-simpl.
-cbv.
+destruct H.
 destruct x.
-split.
-split.
-rewrite H1 in H0.
+auto.
 auto.
 intro.
 exists b.
@@ -1209,25 +1181,6 @@ destruct x.
 auto.
 auto.
 Qed.
-assert((if x then s b else s b)=s b).
-destruct H.
-congruence. 
-split.
-eapply H.
-
-firstorder.
-split.
-destruct H.
-apply H.
-cbv in H.
-red.
-
-exists a.
-split.
-firstorder.
-red.
-
-cbv.
 
           
 Definition empty:=
