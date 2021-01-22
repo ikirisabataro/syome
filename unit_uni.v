@@ -497,7 +497,131 @@ End a.
 
 End m.
 
+Module o.
 
+Section a.
+
+Variable U:Type.
+
+Variable e:U.
+
+Variable f:U → U → U.
+
+Definition inv f (a b:U) :=
+ f a b = e ∧ f b a = e.
+ 
+Variable a b:U.
+
+Definition op (f:U → U → U) a b := f b a.
+
+Goal inv f a b → inv (op f) a b.
+Proof.
+cbv.
+intro.
+tauto.
+Qed.
+
+End a.
+
+End o. 
+
+Module p.
+
+Section a.
+ 
+Variable U:Type.
+
+Variable hom:U → U → Type.
+
+Variable comp:∀a b c,hom a b → hom b c → hom a c.
+
+Variable op:∀a b,hom a b → hom b a.
+
+Definition Op (comp:∀{a b c},hom a b → hom b c → hom a c)
+ a b c (f:hom a b) (g:hom b c) := op(comp(op g)(op f)).
+ 
+Hypothesis H1:∀a b (f:hom a b),op(op f) = f.
+
+Goal ∀a b c (f:hom a b) (g:hom b c),
+ Op(Op comp) f g = comp f g.
+Proof.
+intros.
+cbv.
+repeat rewrite H1.
+split.
+Qed.
+
+End a.
+
+End p.
+
+Module q.
+
+Section a.
+ 
+Variable U:Type.
+
+Variable hom:U → U → Type.
+
+Variable comp:∀a b c,hom a b → hom b c → hom a c.
+
+Variable op:∀a b,hom a b → hom b a.
+
+Definition Op (comp:∀{a b c},hom a b → hom b c → hom a c)
+ a b c (f:hom a b) (g:hom b c) := op(comp(op g)(op f)).
+ 
+Hypothesis H1:∀a b (f:hom a b),op(op f) = f.
+
+Definition aso(comp:∀{a b c},hom a b → hom b c → hom a c):=
+ ∀a b c d (f:hom a b)(g:hom b c)(h:hom c d),
+  comp f (comp g h) = comp (comp f g) h.
+  
+Goal aso comp → aso(Op comp).
+Proof.
+intro.
+red.
+intros.
+cbv.
+repeat rewrite H1.
+red in H.
+f_equal.
+rewrite H.
+split.
+Qed.
+
+End a.
+
+End q.
+
+Module r.
+
+Section a.
+ 
+Variable U:Type.
+
+Variable hom:U → U → Type.
+
+Variable comp:∀a b c,hom a b → hom b c → hom a c.
+
+Variable op:∀a b,hom a b → hom b a.
+
+Definition Op (comp:∀{a b c},hom a b → hom b c → hom a c)
+ a b c (f:hom a b) (g:hom b c) := op(comp(op g)(op f)).
+ 
+Hypothesis H1:∀a b (f:hom a b),op(op f) = f.
+
+Goal ∀a b c(f:hom a b)(g:hom b c),
+ Op comp(op g)(op f) = op(comp f g).
+Proof.
+intros.
+cbv.
+repeat rewrite H1.
+split.
+Qed.
+
+End a.
+
+End r.
 
 
 
