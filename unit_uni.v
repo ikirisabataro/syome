@@ -623,9 +623,40 @@ End a.
 
 End r.
 
+Module s.
 
+Section a.
 
+Definition hom A B (fa:A → A → A) (fb:B → B → B) F :=
+ ∀a1 a2,F(fa a1 a2) = fb(F a1)(F a2).
+ 
+Variable A B C:Type.
+ 
+Variable fa:A → A → A.
 
+Variable fb:B → B → B.
 
+Variable fc:C → C → C.
 
+Variable F1:A → B.
+
+Variable F2:B → C.
+
+Goal hom fa fb F1 → hom fb fc F2 → hom fa fc (F1\;F2).
+Proof.
+intros.
+red.
+intros.
+cbv.
+red in H,H0.
+specialize(H a1 a2).
+specialize(H0(F1 a1)(F1 a2)).
+rewrite <-H0.
+rewrite <- H.
+split.
+Qed.
+
+End a.
+
+End s.
 
