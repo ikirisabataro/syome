@@ -1,4 +1,4 @@
-Require Import Utf8 ssreflect ssrfun Classical FinFun.
+Require Import Utf8 ssreflect ssrfun Classical FinFun Bool.
 
 Set Implicit Arguments.
 
@@ -659,4 +659,248 @@ Qed.
 End a.
 
 End s.
+
+Module t.
+
+Section a.
+
+Definition unit(U:Type)(f:U → U → U)(e:U):=
+ ∀a:U,f e a = a ∧ f a e = a.
+ 
+Definition hom(A B:Type)(fa:A → A → A)(fb:B → B → B)(F:A → B):=
+ ∀e:A,unit fa e → unit fb (F e).
+
+Variable A B C:Type.
+ 
+Variable fa:A → A → A.
+
+Variable fb:B → B → B.
+
+Variable fc:C → C → C.
+
+Variable F1:A → B.
+
+Variable F2:B → C.
+
+Goal hom fa fb F1 → hom fb fc F2 → hom fa fc (F1\;F2).
+Proof.
+intros.
+red.
+intros.
+red.
+intros.
+cbv.
+red in H,H0,H1.
+cbv in H,H0.
+specialize(H e).
+specialize(H H1).
+specialize(H0 (F1 e)).
+specialize(H0 H).
+apply H0.
+Qed.
+
+End a.
+
+End t.
+
+Module u.
+
+Section a.
+
+Definition left(U1 U2:Type)(f:U1 → U2 → U2)(e:U1):=
+ ∀a:U2,f e a = a.
+ 
+Definition hom(A1 A2 B1 B2:Type)(fa:A1 → A2 → A2)
+(fb:B1 → B2 → B2)
+ (F:A1 → B1):=
+  ∀e:A1,left fa e → left fb (F e).
+
+Variable A1 A2 B1 B2 C1 C2:Type.
+ 
+Variable fa:A1 → A2 → A2.
+
+Variable fb:B1 → B2 → B2.
+
+Variable fc:C1 → C2 → C2.
+
+Variable F1:A1 → B1.
+
+Variable F2:B1 → C1.
+
+Goal hom fa fb F1 → hom fb fc F2 → hom fa fc (F1\;F2).
+Proof.
+intros.
+red.
+intros.
+red.
+intros.
+cbv.
+red in H,H0,H1.
+cbv in H,H0.
+specialize(H e).
+specialize(H H1).
+specialize(H0 (F1 e)).
+specialize(H0 H).
+apply H0.
+Qed.
+
+End a.
+
+End u.
+
+Goal ∀n:nat,0+n = n.
+Proof.
+intro.
+simpl.
+split.
+Qed.
+
+Goal ∀n:nat,n+0 = n.
+Proof.
+intro.
+induction n.
+simpl.
+split.
+simpl.
+rewrite IHn.
+split.
+Qed.
+
+Goal ∀n:nat,1*n = n.
+Proof.
+intro.
+simpl.
+auto.
+Qed.
+
+Goal ∀n:nat,n*1 = n.
+Proof.
+intro.
+induction n.
+simpl.
+split.
+simpl.
+rewrite IHn.
+split.
+Qed.
+
+Goal ∀a b c:nat,a+b+c = a+(b+c).
+Proof.
+intros.
+induction a.
+simpl.
+split.
+simpl.
+rewrite IHa.
+split.
+Qed.
+
+Goal ∀a:bool,false||a = a.
+Proof.
+intro.
+simpl.
+split.
+Qed.
+
+Goal ∀a:bool,a||false = a.
+Proof.
+intro.
+destruct a.
+simpl.
+split.
+simpl.
+split.
+Qed.
+
+Module v.
+
+Section a.
+
+Variable U:Type.
+
+Variable R:U → U → Prop.
+
+Hypothesis antsym:∀x y:U,R x y → R y x → x = y.
+
+Definition min(x:U):=∀a:U,R x a.
+
+Variable x1 x2:U.
+
+Goal min x1 → min x2 → x1 = x2.
+Proof.
+intros.
+red in H,H0.
+specialize(H x2).
+specialize(H0 x1).
+specialize(antsym H H0).
+apply antsym.
+Qed.
+
+End a.
+
+End v.
+
+Module w.
+
+Section a.
+
+Variable U:Type.
+
+Definition op(R:U → U → Prop)(a b:U):=R b a.
+
+Definition min(R:U → U → Prop)(x:U):=
+ ∀a:U,R x a.
+ 
+Definition max(R:U → U → Prop)(x:U):=
+ ∀a:U,R a x.
+ 
+Variable R:U → U → Prop.
+
+Variable x:U.
+
+Goal min R x → max (op R) x.
+Proof.
+intro.
+red.
+intro.
+red.
+red in H.
+apply H.
+Qed.
+
+End a.
+
+End w.
+
+Module x.
+
+Section a.
+
+Variable U1 U2:Type.
+
+Definition op(R:U1 → U2 → Prop)(a:U2)(b:U1):=R b a.
+
+Definition min(R:U → U → Prop)(x:U):=
+ ∀a:U,R x a.
+ 
+Definition max(R:U → U → Prop)(x:U):=
+ ∀a:U,R a x.
+ 
+Variable R:U → U → Prop.
+
+Variable x:U.
+
+Goal min R x → max (op R) x.
+Proof.
+intro.
+red.
+intro.
+red.
+red in H.
+apply H.
+Qed.
+
+End a.
+
+End w.
 
